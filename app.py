@@ -5,6 +5,32 @@ import re
 from io import BytesIO
 import requests
 import xml.etree.ElementTree as ET
+import streamlit as st
+
+def check_password():
+    correct = st.secrets.get("APP_PASSWORD", "")
+
+    if not correct:
+        st.warning("Şifre ayarlanmamış. Streamlit Secrets içine APP_PASSWORD ekle.")
+        st.stop()
+
+    def password_entered():
+        if st.session_state.get("password", "") == correct:
+            st.session_state["password_ok"] = True
+            st.session_state["password"] = ""
+        else:
+            st.session_state["password_ok"] = False
+
+    if st.session_state.get("password_ok") is True:
+        return True
+
+    st.text_input("Şifre", type="password", key="password", on_change=password_entered)
+    if st.session_state.get("password_ok") is False:
+        st.error("Yanlış şifre")
+    return False
+
+if not check_password():
+    st.stop()
 
 st.set_page_config(page_title="Stok & Fiyat", layout="wide")
 st.title("Stok & Fiyatlandırma (BLT / Havuztek)")
@@ -215,4 +241,5 @@ st.download_button(
     data=output.getvalue(),
     file_name=f"teklif_{firma}.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
